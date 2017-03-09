@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html ng-app="quizApp" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Quiz Application</title>
+    <!-- You may wish to bundle and minify in your project. It is not bundled and minified here to keep things simple here. -->
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />-->
+    <link href="css/style.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-sanitize.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular-route.min.js"></script>
+    <script src="app/app.js"></script>
+    <script src="app/helperService.js"></script>
+    <script src="app/quizCtrl.js"></script>
+    <script src="app/createCtrl.js"></script>
+    <style>
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #333;
+}
+
+li {
+    float: left;
+    border-right:4px solid #bbb;
+}
+
+li:last-child {
+    border-right: none;
+    border-left:4px solid #bbb;
+}
+
+li a {
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 26px;
+    text-decoration: none;
+}
+
+li a:hover {
+    background-color: red;
+    text-decoration: none;
+    color:white;
+}
+
+.active {
+    background-color: #4CAF50;
+}
+</style>
+</head>
+<body>
+    <ul>
+  <li><a class="active">Home</a></li>
+  <li><a>login</a></li>
+  <li><a>Signup</a></li>
+  <li style="float:right"><a>About</a></li>
+</ul>
+    <div class="container">
+        <div ng-view></div>
+    </div>
+</body>
+</html>
