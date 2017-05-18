@@ -1,12 +1,14 @@
-Neighbourhood-Map
+## Neighbourhood-Map
 
-This is a single page application featuring all parks near Pune neighbourhood. 
+This is a single page application containing all Restaurant in Pune. 
 
-Technical Specification -:
-+ KnockoutJS
-+ Google Maps API
-+ Zomato API
+## Technology Used :-
+* Google Maps API :- AIzaSyBA6Tza9rdawLxHqRykdtN_UuOsi2vGDx0
+* Zomato API :- 8c84822133520a57c80fe5a6605cab42
+* KnockoutJS
 
-Instructions -:
-+ Download or clone this repository
-+ Run index.html on your favourite browser
+## Live at :-
+
+## How To Run -:
+* Download or clone this repository
+* Run index.html
