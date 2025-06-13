@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Committee Explorer with Highcharts</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <!-- <link rel="stylesheet" href="https://unpkg.com/clusterize.js@0.18.1/clusterize.min.css"> -->
+  <link rel="stylesheet" href="https://outsystemsui.outsystems.com/OutSystemsUIWeb/Theme.BaseTheme.css?4147">
+  <script src="https://unpkg.com/clusterize.js@0.18.1/clusterize.min.js"></script>
+  <script src="https://code.highcharts.com/modules/accessibility.js"></script>
+  <style>
+    /* Minimal custom styles using OutSystems UI framework */
+    body {
+      background: var(--color-neutral-1);
+      margin: 0;
+    }
+    
+    .esg-stds-container {
+      max-width: 1200px;
+      margin: var(--space-xxl) auto;
+      background: var(--color-neutral-0);
+      border-radius: var(--border-radius-soft);
+      box-shadow: var(--shadow-m);
+      padding: var(--space-l);
+    }
+    
+    .esg-stds-tabs {
+      display: flex;
+      gap: var(--space-s);
+      margin-bottom: var(--space-m);
+    }
+    
+    .esg-stds-tab {
+      padding: var(--space-s) var(--space-m);
+      border-radius: var(--border-radius-soft);
+      background: var(--color-neutral-3);
+      cursor: pointer;
+      font-weight: var(--font-semi-bold);
+      transition: all 0.2s ease;
+    }
+    
+    .esg-stds-tab.esg-stds-active {
+      background: var(--color-primary);
+      color: var(--color-neutral-0);
+    }
+    
+    .esg-stds-search-bar {
+      margin-bottom: var(--space-s);
+    }
+    
+    .esg-stds-search-bar input,
+    .esg-stds-search-bar select {
+      padding: var(--space-s) var(--space-base);
+      border-radius: var(--border-radius-soft);
+      border: 1px solid var(--color-neutral-5);
+      font-size: var(--font-size-base);
+      margin-right: var(--space-s);
+    }
+    
+    .esg-stds-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-base);
+    }
+    
+    .esg-stds-card {
+      background: var(--color-neutral-2);
+      border-radius: var(--border-radius-soft);
+      padding: var(--space-base) var(--space-m);
+      min-width: 180px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+    }
+    
+    .esg-stds-card:hover {
+      box-shadow: var(--shadow-s);
+    }
+    
+    .esg-stds-details {
+      margin-top: var(--space-m);
+    }
+    
+    .esg-stds-details h3 {
+      margin-top: 0;
+    }
+    
+    .esg-stds-role-badge {
+      display: inline-block;
+      background: var(--color-primary);
+      color: var(--color-neutral-0);
+      border-radius: var(--border-radius-soft);
+      padding: var(--space-xs) var(--space-s);
+      margin-right: var(--space-xs);
+      font-size: var(--font-size-s);
+    }
+    
+    .esg-stds-right-badge {
+      display: inline-block;
+      background: var(--color-success);
+      color: var(--color-neutral-0);
+      border-radius: var(--border-radius-soft);
+      padding: var(--space-xs) var(--space-s);
+      font-size: var(--font-size-s);
+    }
+    
+    .esg-stds-chart-container {
+      margin-top: var(--space-m);
+    }
+    
+    /* Tree View Layout */
+    .esg-stds-tree-view {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      overflow: hidden;
+      gap: var(--space-m);
+    }
+
+    /* Organization Chart Styles */
+    .esg-stds-org-chart {
+      flex: 2;
+      min-height: 500px;
+      background: var(--color-neutral-1);
+      border-radius: var(--border-radius-soft);
+      overflow: auto;
+      position: relative;
+    }
+    
+    .esg-stds-tree-details {
+      flex: 1;
+      background: var(--color-neutral-1);
+      border-radius: var(--border-radius-soft);
+      padding: 18px 18px 10px 18px;
+      box-shadow: var(--shadow-s);
+      min-width: 340px;
+      max-width: 520px;
+      overflow-y: auto;
+      height: 100vh;
+      font-size: 0.98em;
+    }
+    .esg-stds-tree-details h3 {
+      margin: 0 0 6px 0;
+      font-size: 1.25em;
+    }
+    .esg-stds-tree-details h4 {
+      margin: 12px 0 6px 0;
+      font-size: 1.08em;
+      font-weight: 600;
+    }
+    .esg-stds-tree-details .esg-stds-section-divider {
+      border: none;
+      border-top: 1.5px solid #e0e0e0;
+      margin: 12px 0 10px 0;
+    }
+    .esg-stds-tree-details .esg-stds-compact-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .esg-stds-tree-details .esg-stds-compact-label {
+      color: #666;
+      font-size: 0.97em;
+      min-width: 110px;
+      font-weight: 500;
+    }
+    .esg-stds-tree-details .esg-stds-compact-value {
+      color: #222;
+      font-size: 1em;
+      font-weight: 600;
+    }
+
+    /* Collapsible Content Styles */
+    .esg-stds-collapsible-content {
+      transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+    }
+
+    .esg-stds-collapsible-content.esg-stds-collapsed {
+      max-height: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      opacity: 0;
+    }
+    
+    .esg-stds-zoom-controls {
+      position: absolute;
+      top: var(--space-base);
+      right: var(--space-base);
+      display: flex;
+      align-items: center;
+      gap: var(--space-s);
+      background: rgba(255, 255, 255, 0.95);
+      padding: var(--space-s) var(--space-base);
+      border-radius: var(--border-radius-soft);
+      box-shadow: var(--shadow-s);
+      z-index: 100;
+    }
+    
+    .esg-stds-zoom-btn {
+      background: var(--color-primary);
+      color: var(--color-neutral-0);
+      border: none;
+      border-radius: var(--border-radius-soft);
+      width: 28px;
+      height: 28px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: var(--font-size-s);
+      font-weight: var(--font-semi-bold);
+      transition: all 0.2s ease;
+    }
+    
+    .esg-stds-zoom-btn:hover {
+      background: var(--color-primary-hover);
+      transform: translateY(-1px);
+    }
+    
+    .esg-stds-zoom-info {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-semi-bold);
+      color: var(--color-neutral-8);
+      min-width: 35px;
+      text-align: center;
+    }
+    
+    .esg-stds-org-chart-container {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .esg-stds-org-chart-viewport {
+      width: 100%;
+      height: 100%;
+      transform-origin: center center;
+      transition: transform 0.2s ease;
+    }
+    
+    .esg-stds-connection-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 500;
+    }
+    
+    .esg-stds-org-chart-viewport.esg-stds-dragging {
+      cursor: grabbing;
+      transition: none;
+    }
+    
+    .esg-stds-org-chart-container.esg-stds-dragging {
+      cursor: grabbing;
+    }
+    
+    .esg-stds-org-chart-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--space-base);
+      min-height: 800px; /* Ensure enough height for the chart */
+    }
+    
+    .esg-stds-org-level {
+      display: flex;
+      justify-content: center;
+      margin: var(--space-xxl) 0;
+      position: relative;
+      width: 100%;
+    }
+    
+    .esg-stds-org-node {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: var(--color-neutral-0);
+      padding: var(--space-base) var(--space-base);
+      border-radius: var(--border-radius-soft);
+      margin: 0 var(--space-base);
+      text-align: center;
+      min-width: 200px;
+      max-width: 280px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-s);
+      position: relative;
+      font-size: var(--font-size-s);
+      line-height: 1.4;
+      z-index: 10; /* Lower than connectors, but higher than default */
+    }
+    
+    .esg-stds-org-node:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-m);
+    }
+    
+    .esg-stds-org-node.esg-stds-active {
+      background: linear-gradient(135deg, var(--color-success), var(--color-success-light));
+      box-shadow: 0 0 0 4px #28a74555, 0 4px 24px 0 #0002;
+      border: 2.5px solid #28a745;
+      transform: scale(1.07);
+      z-index: 2;
+      transition: box-shadow 0.2s, border 0.2s, transform 0.2s;
+    }
+    
+    /* Level-specific colors using OutSystems variables */
+    .esg-stds-org-node.esg-stds-level-0 {
+      background: linear-gradient(135deg, var(--color-violet), var(--color-violet-dark));
+    }
+    
+    .esg-stds-org-node.esg-stds-level-1 {
+      background: linear-gradient(135deg, var(--color-blue), var(--color-blue-dark));
+    }
+    
+    .esg-stds-org-node.esg-stds-level-2 {
+      background: linear-gradient(135deg, var(--color-cyan), var(--color-cyan-dark));
+    }
+    
+    .esg-stds-org-node.esg-stds-level-3 {
+      background: linear-gradient(135deg, var(--color-green), var(--color-green-dark));
+    }
+    
+    .esg-stds-org-node.esg-stds-level-4 {
+      background: linear-gradient(135deg, var(--color-orange), var(--color-orange-dark));
+    }
+    
+    .esg-stds-org-node.esg-stds-level-5 {
+      background: linear-gradient(135deg, var(--color-red), var(--color-red-dark));
+    }
+    
+    .esg-stds-org-node .esg-stds-node-title {
+      font-weight: var(--font-semi-bold);
+      margin-bottom: var(--space-xs);
+    }
+    
+    .esg-stds-org-node .esg-stds-node-type {
+      font-size: var(--font-size-xs);
+      opacity: 0.9;
+    }
+    
+    .esg-stds-connector-line {
+      position: absolute; /* Not fixed, so it transforms with parent */
+      background: #0066cc;
+      z-index: 1000; /* Much higher z-index to ensure visibility */
+      border-radius: 3px;
+      box-shadow: 0 0 8px rgba(0, 0, 0, 0.6);
+      pointer-events: none;
+    }
+    
+    .clusterize-scroll {
+      max-height: 500px;
+      overflow-y: auto;
+      border-radius: var(--border-radius-soft);
+      background: var(--color-neutral-1);
+    }
+    
+    .clusterize-content .esg-stds-card {
+      margin: var(--space-s);
+      width: calc(100% - 16px);
+      box-sizing: border-box;
+    }
+    
+    @media (max-width: 900px) {
+      .esg-stds-tree-view {
+        flex-direction: column;
+        height: auto;
+      }
+      
+      .esg-stds-org-chart {
+        flex: none;
+        height: 60vh;
+        margin-bottom: var(--space-m);
+      }
+      
+      .esg-stds-tree-details {
+        flex: none;
+        height: auto;
+        max-height: 40vh;
+        min-width: unset;
+        max-width: unset;
+      }
+      
+      .esg-stds-org-level {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .esg-stds-org-node {
+        margin: var(--space-s) 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="esg-stds-container">
+    <div class="esg-stds-tabs">
+      <div class="esg-stds-tab esg-stds-active" id="userTab">User View</div>
+      <div class="esg-stds-tab" id="committeeTab">Committee View</div>
+      <div class="esg-stds-tab" id="committeeTreeTab">Committee Tree View</div>
+    </div>
+    <div id="userSearchBar" class="esg-stds-search-bar" style="display:none;"></div>
+    <div id="mainList" class="esg-stds-list"></div>
+    <div id="committeeSearchBar" class="esg-stds-search-bar" style="display:none;"></div>
+    <div id="committeeListScrollArea" class="clusterize-scroll" style="display:none;"><div id="committeeListContent" class="clusterize-content"></div></div>
+    <div id="details" class="esg-stds-details"></div>
+    <div class="esg-stds-tree-view" style="display:none;">
+      <div class="esg-stds-org-chart"></div>
+      <div class="esg-stds-tree-details"></div>
+    </div>
+    <div class="esg-stds-chart-container"></div>
+  </div>
+  <script>
+    // Updated Data Structure with Type Role Mappings
+    const apiData = {
+      "committeeTypes": [
+        {
+          "id": 1,
+          "label": "Singapore Standards Council",
+          "ORDER": 1,
+          "isActive": true,
+          "parentIds": [
+            { "ParentCommitteeTypeId": "" },
+            { "ParentCommitteeTypeId": "" },
+            { "ParentCommitteeTypeId": "" },
+            { "ParentCommitteeTypeId": "" },
+            { "ParentCommitteeTypeId": "" },
+            { "ParentCommitteeTypeId": "" }
+          ]
+        },
+        {
+          "id": 2,
+          "label": "Standards Committee",
+          "ORDER": 2,
+          "isActive": true,
+          "parentIds": [
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" }
+          ]
+        },
+        {
+          "id": 6,
+          "label": "Coordinating Committee",
+          "ORDER": 2,
+          "isActive": true,
+          "parentIds": [
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" },
+            { "ParentCommitteeTypeId": "1" }
+          ]
+        },
+        {
+          "id": 3,
+          "label": "Technical Committee",
+          "ORDER": 3,
+          "isActive": true,
+          "parentIds": [
+            { "ParentCommitteeTypeId": "2,6" },
+            { "ParentCommitteeTypeId": "2,6" },
+            { "ParentCommitteeTypeId": "2,6" },
+            { "ParentCommitteeTypeId": "2,6" },
+            { "ParentCommitteeTypeId": "2,6" },
+            { "ParentCommitteeTypeId": "2,6" },
+            { "ParentCommitteeTypeId": "2,6" },
+            { "ParentCommitteeTypeId": "2,6" },
+            { "ParentCommitteeTypeId": "2,6" }
+          ]
+        },
+        {
+          "id": 4,
+          "label": "Working Group",
+          "ORDER": 4,
+          "isActive": true,
+          "parentIds": [
+            { "ParentCommitteeTypeId": "3" },
+            { "ParentCommitteeTypeId": "3" },
+            { "ParentCommitteeTypeId": "3" },
+            { "ParentCommitteeTypeId": "3" },
+            { "ParentCommitteeTypeId": "3" },
+            { "ParentCommitteeTypeId": "3" },
+            { "ParentCommitteeTypeId": "3" },
+            { "ParentCommitteeTypeId": "3" }
+          ]
+        },
+        {
+          "id": 5,
+          "label": "National Mirror Committee",
+          "ORDER": 6,
+          "isActive": false
+        }
+      ],
+      "committees": [
+        {
+          "id": 1,
+          "projectName": "iso:committee:test01",
+          "name": "01 Committee - SSC",
+          "guid": "2fe8c47f-4b4c-4d4d-985b-f146c8798688",
+          "parentCommitteeId": 0,
+          "committeeTypeId": 1
+        },
+        {
+          "id": 2,
+          "projectName": "iso:committee:test02",
+          "name": "02 Committee - Standards Committee",
+          "guid": "30bd2bd6-088f-4d5e-add2-af9b246ae347",
+          "parentCommitteeId": 1,
+          "committeeTypeId": 2
+        },
+        {
+          "id": 8,
+          "projectName": "",
+          "name": "03 Committee - Coordinating Committe",
+          "guid": "a78cc6a6-37d2-475d-9ef8-02c2c18f3928",
+          "parentCommitteeId": 1,
+          "committeeTypeId": 6
+        },
+        {
+          "id": 9,
+          "projectName": "",
+          "name": "04 Committee - Technical Committee",
+          "guid": "c3529b69-9f96-4ef7-810c-209df60d820f",
+          "parentCommitteeId": 8,
+          "committeeTypeId": 3
+        },
+        {
+          "id": 10,
+          "projectName": "",
+          "name": "05 Committee - Working Group",
+          "guid": "ec7adef4-b2f7-4f59-bbbb-9acb3dfb0b4e",
+          "parentCommitteeId": 9,
+          "committeeTypeId": 4
+        },
+        {
+          "id": 11,
+          "projectName": "",
+          "name": "06 Committee - NMC",
+          "guid": "33cb330b-f261-4661-b985-6ee6d50e5dfd",
+          "parentCommitteeId": 9,
+          "committeeTypeId": 5
+        },
+        {
+          "id": 12,
+          "projectName": "",
+          "name": "04 Committee - Technical Committee 02",
+          "guid": "d76b1330-479f-4a5e-9515-23ff0065aee5",
+          "parentCommitteeId": 2,
+          "committeeTypeId": 3
+        },
+        {
+          "id": 13,
+          "projectName": "test 0013343",
+          "name": "02777 Committee",
+          "guid": "642b3403-c982-44a4-8c73-f12c090fe23a",
+          "parentCommitteeId": 1,
+          "committeeTypeId": 2
+        },
+        {
+          "id": 14,
+          "projectName": "",
+          "name": "test234",
+          "guid": "760a64f7-f021-4bd0-a008-f445b7cf0fce",
+          "parentCommitteeId": 1,
+          "committeeTypeId": 6
+        }
+      ],
+      "typeRoleMappings": [
+        {
+          "id": 1,
+          "committeeTypeId": 1,
+          "roleId": 87,
+          "roleName": "Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 2,
+          "committeeTypeId": 1,
+          "roleId": 89,
+          "roleName": "Deputy Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 3,
+          "committeeTypeId": 1,
+          "roleId": 90,
+          "roleName": "Voting Member",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 4,
+          "committeeTypeId": 1,
+          "roleId": 94,
+          "roleName": "SDO Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 5,
+          "committeeTypeId": 1,
+          "roleId": 95,
+          "roleName": "SC Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 6,
+          "committeeTypeId": 1,
+          "roleId": 96,
+          "roleName": "Secretariat",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 7,
+          "committeeTypeId": 2,
+          "roleId": 87,
+          "roleName": "Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 8,
+          "committeeTypeId": 2,
+          "roleId": 88,
+          "roleName": "Co-Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 9,
+          "committeeTypeId": 2,
+          "roleId": 89,
+          "roleName": "Deputy Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 10,
+          "committeeTypeId": 2,
+          "roleId": 90,
+          "roleName": "Voting Member",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 11,
+          "committeeTypeId": 2,
+          "roleId": 92,
+          "roleName": "Alternate Member",
+          "userRightId": 2,
+          "userRight": "Non- voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 12,
+          "committeeTypeId": 2,
+          "roleId": 93,
+          "roleName": "Observer",
+          "userRightId": 2,
+          "userRight": "Non- voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 13,
+          "committeeTypeId": 2,
+          "roleId": 94,
+          "roleName": "SDO Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 14,
+          "committeeTypeId": 2,
+          "roleId": 95,
+          "roleName": "SC Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 15,
+          "committeeTypeId": 2,
+          "roleId": 96,
+          "roleName": "Secretariat",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 16,
+          "committeeTypeId": 6,
+          "roleId": 87,
+          "roleName": "Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 17,
+          "committeeTypeId": 6,
+          "roleId": 88,
+          "roleName": "Co-Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 18,
+          "committeeTypeId": 6,
+          "roleId": 89,
+          "roleName": "Deputy Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 19,
+          "committeeTypeId": 6,
+          "roleId": 90,
+          "roleName": "Voting Member",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 20,
+          "committeeTypeId": 6,
+          "roleId": 92,
+          "roleName": "Alternate Member",
+          "userRightId": 2,
+          "userRight": "Non- voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 21,
+          "committeeTypeId": 6,
+          "roleId": 93,
+          "roleName": "Observer",
+          "userRightId": 2,
+          "userRight": "Non- voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 22,
+          "committeeTypeId": 6,
+          "roleId": 94,
+          "roleName": "SDO Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 23,
+          "committeeTypeId": 6,
+          "roleId": 95,
+          "roleName": "SC Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 24,
+          "committeeTypeId": 6,
+          "roleId": 96,
+          "roleName": "Secretariat",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 25,
+          "committeeTypeId": 3,
+          "roleId": 87,
+          "roleName": "Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 26,
+          "committeeTypeId": 3,
+          "roleId": 88,
+          "roleName": "Co-Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 27,
+          "committeeTypeId": 3,
+          "roleId": 89,
+          "roleName": "Deputy Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 28,
+          "committeeTypeId": 3,
+          "roleId": 90,
+          "roleName": "Voting Member",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 29,
+          "committeeTypeId": 3,
+          "roleId": 92,
+          "roleName": "Alternate Member",
+          "userRightId": 2,
+          "userRight": "Non- voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 30,
+          "committeeTypeId": 3,
+          "roleId": 93,
+          "roleName": "Observer",
+          "userRightId": 2,
+          "userRight": "Non- voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 31,
+          "committeeTypeId": 3,
+          "roleId": 94,
+          "roleName": "SDO Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 32,
+          "committeeTypeId": 3,
+          "roleId": 95,
+          "roleName": "SC Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 33,
+          "committeeTypeId": 3,
+          "roleId": 96,
+          "roleName": "Secretariat",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 34,
+          "committeeTypeId": 4,
+          "roleId": 87,
+          "roleName": "Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 35,
+          "committeeTypeId": 4,
+          "roleId": 88,
+          "roleName": "Co-Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 36,
+          "committeeTypeId": 4,
+          "roleId": 89,
+          "roleName": "Deputy Chair",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 37,
+          "committeeTypeId": 4,
+          "roleId": 90,
+          "roleName": "Voting Member",
+          "userRightId": 3,
+          "userRight": "Voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 38,
+          "committeeTypeId": 4,
+          "roleId": 93,
+          "roleName": "Observer",
+          "userRightId": 2,
+          "userRight": "Non- voting Membership",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 39,
+          "committeeTypeId": 4,
+          "roleId": 94,
+          "roleName": "SDO Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 40,
+          "committeeTypeId": 4,
+          "roleId": 95,
+          "roleName": "SC Head",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        },
+        {
+          "id": 41,
+          "committeeTypeId": 4,
+          "roleId": 96,
+          "roleName": "Secretariat",
+          "userRightId": 1,
+          "userRight": "Administrative Staff",
+          "representationId": 1,
+          "representation": "Individual"
+        }
+      ],
+      "data": "{\"users\":[{\"id\":4,\"name\":\"Akash Deep Mishra\",\"memberships\":[{\"committeeId\":10,\"role\":\"Deputy Chair\"}]}],\"committees\":[{\"id\":1,\"projectName\":\"iso:committee:test01\",\"name\":\"01 Committee - SSC\",\"guid\":\"2fe8c47f-4b4c-4d4d-985b-f146c8798688\",\"parentCommitteeId\":0,\"committeeTypeId\":1},{\"id\":2,\"projectName\":\"iso:committee:test02\",\"name\":\"02 Committee - Standards Committee\",\"guid\":\"30bd2bd6-088f-4d5e-add2-af9b246ae347\",\"parentCommitteeId\":1,\"committeeTypeId\":2},{\"id\":8,\"projectName\":\"\",\"name\":\"03 Committee - Coordinating Committe\",\"guid\":\"a78cc6a6-37d2-475d-9ef8-02c2c18f3928\",\"parentCommitteeId\":1,\"committeeTypeId\":6},{\"id\":9,\"projectName\":\"\",\"name\":\"04 Committee - Technical Committee\",\"guid\":\"c3529b69-9f96-4ef7-810c-209df60d820f\",\"parentCommitteeId\":8,\"committeeTypeId\":3},{\"id\":10,\"projectName\":\"\",\"name\":\"05 Committee - Working Group\",\"guid\":\"ec7adef4-b2f7-4f59-bbbb-9acb3dfb0b4e\",\"parentCommitteeId\":9,\"committeeTypeId\":4},{\"id\":11,\"projectName\":\"\",\"name\":\"06 Committee - NMC\",\"guid\":\"33cb330b-f261-4661-b985-6ee6d50e5dfd\",\"parentCommitteeId\":9,\"committeeTypeId\":5},{\"id\":12,\"projectName\":\"\",\"name\":\"04 Committee - Technical Committee 02\",\"guid\":\"d76b1330-479f-4a5e-9515-23ff0065aee5\",\"parentCommitteeId\":2,\"committeeTypeId\":3},{\"id\":13,\"projectName\":\"test 0013343\",\"name\":\"02777 Committee\",\"guid\":\"642b3403-c982-44a4-8c73-f12c090fe23a\",\"parentCommitteeId\":1,\"committeeTypeId\":2},{\"id\":14,\"projectName\":\"\",\"name\":\"test234\",\"guid\":\"760a64f7-f021-4bd0-a008-f445b7cf0fce\",\"parentCommitteeId\":1,\"committeeTypeId\":6}],\"roles\":[{\"name\":\"Alternate Member\",\"RIGHT\":\"Non- voting Membership\"},{\"name\":\"Chair\",\"RIGHT\":\"Voting Membership\"},{\"name\":\"Co-Chair\",\"RIGHT\":\"Voting Membership\"},{\"name\":\"Deputy Chair\",\"RIGHT\":\"Voting Membership\"},{\"name\":\"Observer\",\"RIGHT\":\"Non- voting Membership\"},{\"name\":\"SC Head\",\"RIGHT\":\"Administrative Staff\"},{\"name\":\"SDO Head\",\"RIGHT\":\"Administrative Staff\"},{\"name\":\"Secretariat\",\"RIGHT\":\"Administrative Staff\"},{\"name\":\"Voting Member\",\"RIGHT\":\"Voting Membership\"}],\"rights\":[{\"label\":\"Administrative Staff\"},{\"label\":\"Non- voting Membership\"},{\"label\":\"Voting Membership\"}]}"
+    };
+
+    // Parse the nested JSON data
+    const parsedData = JSON.parse(apiData.data || '{"users":[],"committees":[],"roles":[],"rights":[]}');
+
+    // Process committee types for easier lookup
+    const committeeTypes = apiData.committeeTypes.map(ct => ({
+      id: ct.id.toString(),
+      label: ct.label,
+      order: ct.ORDER,
+      isActive: ct.isActive
+    }));
+
+    // Use the committees from the main data
+    const committees = apiData.committees;
+
+    // Main data structure combining everything
+    const data = {
+      users: parsedData.users || [
+        {
+          id: 4,
+          name: "Akash Deep Mishra",
+          memberships: [
+            { committeeId: 1, role: "Alternate Member" }
+          ]
+        }
+      ],
+      committees: committees,
+      roles: parsedData.roles || [
+        { name: "Alternate Member", RIGHT: "Non- voting Membership" },
+        { name: "Chair", RIGHT: "Voting Membership" },
+        { name: "Co-Chair", RIGHT: "Voting Membership" },
+        { name: "Deputy Chair", RIGHT: "Voting Membership" },
+        { name: "Observer", RIGHT: "Non- voting Membership" },
+        { name: "SC Head", RIGHT: "Administrative Staff" },
+        { name: "SDO Head", RIGHT: "Administrative Staff" },
+        { name: "Secretariat", RIGHT: "Administrative Staff" },
+        { name: "Voting Member", RIGHT: "Voting Membership" }
+      ],
+      rights: parsedData.rights || [
+        { label: "Administrative Staff" },
+        { label: "Non- voting Membership" },
+        { label: "Voting Membership" }
+      ]
+    };
+
+    // Utility functions
+    function getRoleRight(roleName) {
+      const role = data.roles.find(r => r.name === roleName);
+      return role ? role.RIGHT : "N/A";
+    }
+    function getCommitteeName(committeeId) {
+      const committee = data.committees.find(c => c.id === committeeId);
+      return committee ? committee.name : "Unknown";
+    }
+    function getCommitteeTypeLabel(committeeTypeId) {
+      const ct = committeeTypes.find(t => t.id == committeeTypeId);
+      return ct ? ct.label : "Unknown";
+    }
+    function getUserName(userId) {
+      const user = data.users.find(u => u.id === userId);
+      return user ? user.name : "Unknown";
+    }
+
+    // Build hierarchical structure for org chart
+    function buildHierarchy(committees) {
+      const map = {};
+      committees.forEach(c => map[c.id] = { ...c, children: [], level: 0 });
+      
+      // Build parent-child relationships
+      committees.forEach(c => {
+        if (c.parentCommitteeId && c.parentCommitteeId !== 0 && map[c.parentCommitteeId]) {
+          map[c.parentCommitteeId].children.push(map[c.id]);
+        }
+      });
+      
+      // Calculate levels
+      function calculateLevel(node, level = 0) {
+        node.level = level;
+        node.children.forEach(child => calculateLevel(child, level + 1));
+      }
+      
+      const roots = committees.filter(c => !c.parentCommitteeId || c.parentCommitteeId === 0).map(c => map[c.id]);
+      roots.forEach(root => calculateLevel(root));
+      
+      return { roots, map };
+    }
+
+    // --- Virtualized User List ---
+    let userClusterize = null;
+    function renderVirtualUserList(users) {
+      const rows = users.map(user => `<div class="esg-stds-card" onclick="showUserDetails('${user.id}')">${user.name}</div>`);
+      if (userClusterize) userClusterize.destroy(true);
+      
+      // Create proper structure for Clusterize
+      $('#mainList').html('<div id="userScrollArea" class="clusterize-scroll"><div id="userContentArea" class="clusterize-content"></div></div>');
+      
+      userClusterize = new Clusterize({
+        rows,
+        scrollId: 'userScrollArea',
+        contentId: 'userContentArea'
+      });
+    }
+
+    // --- Virtualized Committee List ---
+    let committeeClusterize = null;
+    function renderVirtualCommitteeList(committeesList) {
+      const rows = committeesList.map(comm => `<div class="esg-stds-card" onclick="showCommitteeDetails(${comm.id})">${comm.name}</div>`);
+      if (committeeClusterize) committeeClusterize.destroy(true);
+      
+      committeeClusterize = new Clusterize({
+        rows,
+        scrollId: 'committeeListScrollArea',
+        contentId: 'committeeListContent'
+      });
+    }
+
+    // --- User View ---
+    function renderUserList() {
+      $('#userSearchBar').show();
+      $('#mainList').show();
+      $('#committeeSearchBar').hide();
+      $('#committeeListScrollArea').hide();
+      $('#details').show();
+      $('.esg-stds-chart-container').show();
+      $('.esg-stds-tree-view').hide();
+      
+      $('#userSearchBar').html('<input type="text" id="userSearchInput" placeholder="Search users..." style="width:100%;">');
+      renderVirtualUserList(data.users);
+      
+      $('#userSearchInput').on('input', function() {
+        const q = $(this).val().toLowerCase();
+        const filtered = data.users.filter(u => u.name.toLowerCase().includes(q));
+        renderVirtualUserList(filtered);
+      });
+      
+      $('#details').html('');
+      $('.esg-stds-chart-container').html('');
+    }
+
+    // --- Committee View ---
+    function renderCommitteeList() {
+      $('#userSearchBar').hide();
+      $('#mainList').hide();
+      $('#committeeSearchBar').show();
+      $('#committeeListScrollArea').show();
+      $('#details').show();
+      $('.esg-stds-chart-container').show();
+      $('.esg-stds-tree-view').hide();
+      
+      let typeOptions = '<option value="">All Types</option>';
+      committeeTypes.forEach(ct => typeOptions += `<option value="${ct.id}">${ct.label}</option>`);
+      $('#committeeSearchBar').html(`
+        <input type="text" id="committeeSearchInput" placeholder="Search committees...">
+        <select id="committeeTypeFilter">${typeOptions}</select>
+      `);
+      
+      renderVirtualCommitteeList(committees);
+      
+      function filterCommittees() {
+        const q = $('#committeeSearchInput').val().toLowerCase();
+        const type = $('#committeeTypeFilter').val();
+        let filtered = committees;
+        if (type) filtered = filtered.filter(c => c.committeeTypeId == type);
+        if (q) filtered = filtered.filter(c => c.name.toLowerCase().includes(q));
+        renderVirtualCommitteeList(filtered);
+      }
+      
+      $('#committeeSearchInput').on('input', filterCommittees);
+      $('#committeeTypeFilter').on('change', filterCommittees);
+      
+      $('#details').html('');
+      $('.esg-stds-chart-container').html('');
+    }
+
+    // --- Custom Organization Chart ---
+    let currentZoom = 1;
+    let panX = 0;
+    let panY = 0;
+    const minZoom = 0.5;
+    const maxZoom = 3;
+    const zoomStep = 0.2;
+    let isDragging = false;
+    let lastX = 0;
+    let lastY = 0;
+    
+    function renderOrganizationChart(committees) {
+      $('#userSearchBar').hide();
+      $('#mainList').hide();
+      $('#committeeSearchBar').hide();
+      $('#committeeListScrollArea').hide();
+      $('#details').hide();
+      $('.esg-stds-chart-container').hide();
+      $('.esg-stds-tree-view').show();
+      
+      $('.esg-stds-tree-details').html('<div style="color:#888;">Click a committee node to see details.</div>');
+      
+      // Reset zoom and pan when switching to tree view
+      currentZoom = 1;
+      panX = 0;
+      panY = 0;
+      
+      const { roots } = buildHierarchy(committees);
+      const $chart = $('.esg-stds-org-chart').first();
+      $chart.html(`
+        <div class="esg-stds-zoom-controls">
+          <button class="esg-stds-zoom-btn" id="zoomIn" title="Zoom In">+</button>
+          <div class="esg-stds-zoom-info" id="zoomLevel">100%</div>
+          <button class="esg-stds-zoom-btn" id="zoomOut" title="Zoom Out">−</button>
+          <button class="esg-stds-zoom-btn" id="zoomReset" title="Reset Zoom">⌂</button>
+        </div>
+        <canvas class="esg-stds-connection-canvas"></canvas>
+        <div class="esg-stds-org-chart-container">
+          <div class="esg-stds-org-chart-viewport">
+            <div class="esg-stds-org-chart-content"></div>
+          </div>
+        </div>
+      `);
+      
+      const $orgChart = $('.esg-stds-org-chart-content');
+      const $viewport = $('.esg-stds-org-chart-viewport');
+      const $container = $('.esg-stds-org-chart-container');
+      const levelNodes = {};
+      const nodePositions = {};
+      
+      // Set up the canvas for connections
+      const $canvas = $('.esg-stds-connection-canvas');
+      const canvas = $canvas[0];
+      
+      // Set canvas size to match container
+      function resizeCanvas() {
+        const chartWidth = $chart.width();
+        const chartHeight = $chart.height();
+        canvas.width = chartWidth;
+        canvas.height = chartHeight;
+        console.log(`Canvas resized to ${chartWidth}x${chartHeight}`);
+        drawConnections();
+      }
+      
+      // Resize canvas on window resize
+      $(window).on('resize', resizeCanvas);
+      setTimeout(resizeCanvas, 100);
+      
+      // Zoom controls event handlers
+      $('#zoomIn').on('click', function() {
+        if (currentZoom < maxZoom) {
+          handleZoom(Math.min(maxZoom, currentZoom + zoomStep));
+        }
+      });
+      
+      $('#zoomOut').on('click', function() {
+        if (currentZoom > minZoom) {
+          handleZoom(Math.max(minZoom, currentZoom - zoomStep));
+        }
+      });
+      
+      $('#zoomReset').on('click', function() {
+        currentZoom = 1;
+        panX = 0;
+        panY = 0;
+        applyTransform();
+      });
+      
+      // Mouse wheel zoom with improved handling
+      $container.on('wheel', function(e) {
+        e.preventDefault();
+        const delta = e.originalEvent.deltaY;
+        const zoomFactor = delta > 0 ? -zoomStep : zoomStep;
+        const newZoom = Math.max(minZoom, Math.min(maxZoom, currentZoom + zoomFactor));
+        handleZoom(newZoom);
+      });
+      
+      // Mouse pan functionality
+      $container.on('mousedown', function(e) {
+        if (e.target.closest('.esg-stds-org-node')) return; // Don't pan when clicking nodes
+        isDragging = true;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        $container.addClass('esg-stds-dragging');
+        $viewport.addClass('esg-stds-dragging');
+        e.preventDefault();
+      });
+      
+      $(document).on('mousemove', function(e) {
+        if (!isDragging) return;
+        
+        const deltaX = e.clientX - lastX;
+        const deltaY = e.clientY - lastY;
+        
+        panX += deltaX;
+        panY += deltaY;
+        
+        applyTransform();
+        
+        lastX = e.clientX;
+        lastY = e.clientY;
+      });
+      
+      $(document).on('mouseup', function() {
+        if (isDragging) {
+          isDragging = false;
+          $container.removeClass('esg-stds-dragging');
+          $viewport.removeClass('esg-stds-dragging');
+        }
+      });
+      
+          function applyTransform() {
+      $viewport.css('transform', `translate(${panX}px, ${panY}px) scale(${currentZoom})`);
+      $('#zoomLevel').text(`${Math.round(currentZoom * 100)}%`);
+      
+      // Important: Need to wait for transform to apply before redrawing
+      setTimeout(() => {
+        drawConnections();
+      }, 50);
+    }
+    
+    // Better zoom handling
+    function handleZoom(newZoom) {
+      if (newZoom !== currentZoom) {
+        currentZoom = newZoom;
+        
+        // Add a micro-pan of 0.1px to trigger proper redrawing
+        panX += 0.1;
+        
+        // Apply the transform with the small pan adjustment
+        applyTransform();
+        
+        // Then remove the micro-pan after a short delay
+        setTimeout(() => {
+          panX -= 0.1;
+          applyTransform();
+        }, 100);
+      }
+    }
+      
+      // Draw connections using canvas
+      function drawConnections() {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Set default line styles
+        const lineWidth = 2 * (currentZoom > 1 ? 1/currentZoom : 1); // Adjust line width based on zoom level
+        ctx.lineWidth = lineWidth;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        
+        // Account for viewport transform
+        const transform = $viewport.css('transform');
+        const containerOffset = $container.offset();
+        
+        // Shadow effect for all lines
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+        ctx.shadowBlur = 5 * (currentZoom > 1 ? 1/currentZoom : 1);
+        ctx.shadowOffsetY = lineWidth/2;
+        
+        let connectionsDrawn = 0;
+        
+        Object.keys(nodePositions).forEach(nodeId => {
+          const node = nodePositions[nodeId];
+          if (node.parentId && node.parentId !== 0 && nodePositions[node.parentId]) {
+            const $childElement = $(`#node-${nodeId}`);
+            const $parentElement = $(`#node-${node.parentId}`);
+            
+            if ($childElement.length && $parentElement.length) {
+              // Get positions with zoom/pan compensation
+              const childRect = $childElement[0].getBoundingClientRect();
+              const parentRect = $parentElement[0].getBoundingClientRect();
+              const containerRect = $container[0].getBoundingClientRect();
+              
+              // Calculate positions relative to the container
+              const parentLeft = parentRect.left - containerRect.left;
+              const parentTop = parentRect.top - containerRect.top;
+              const childLeft = childRect.left - containerRect.left;
+              const childTop = childRect.top - containerRect.top;
+              
+              const parentWidth = parentRect.width;
+              const parentHeight = parentRect.height;
+              const childWidth = childRect.width;
+              
+              // Calculate connection points
+              const parentCenterX = parentLeft + parentWidth / 2;
+              const parentBottom = parentTop + parentHeight;
+              const childCenterX = childLeft + childWidth / 2;
+              const childTopPos = childTop;
+              
+              // Calculate the midpoint
+              const midY = (parentBottom + childTopPos) / 2;
+
+              // Determine level for coloring
+              const level = node.level || 0;
+              let lineGradient;
+              
+              // Create gradient based on node level
+              switch (level % 6) {
+                case 0: // Purple
+                  lineGradient = ctx.createLinearGradient(0, parentBottom, 0, childTopPos);
+                  lineGradient.addColorStop(0, 'rgba(116, 86, 241, 0.85)');
+                  lineGradient.addColorStop(1, 'rgba(102, 126, 234, 0.85)');
+                  break;
+                case 1: // Blue
+                  lineGradient = ctx.createLinearGradient(0, parentBottom, 0, childTopPos);
+                  lineGradient.addColorStop(0, 'rgba(30, 144, 255, 0.85)');
+                  lineGradient.addColorStop(1, 'rgba(65, 105, 225, 0.85)');
+                  break;
+                case 2: // Teal
+                  lineGradient = ctx.createLinearGradient(0, parentBottom, 0, childTopPos);
+                  lineGradient.addColorStop(0, 'rgba(0, 172, 172, 0.85)');
+                  lineGradient.addColorStop(1, 'rgba(32, 178, 170, 0.85)');
+                  break;
+                case 3: // Green
+                  lineGradient = ctx.createLinearGradient(0, parentBottom, 0, childTopPos);
+                  lineGradient.addColorStop(0, 'rgba(46, 204, 113, 0.85)');
+                  lineGradient.addColorStop(1, 'rgba(39, 174, 96, 0.85)');
+                  break;
+                case 4: // Orange
+                  lineGradient = ctx.createLinearGradient(0, parentBottom, 0, childTopPos);
+                  lineGradient.addColorStop(0, 'rgba(255, 140, 0, 0.85)');
+                  lineGradient.addColorStop(1, 'rgba(243, 156, 18, 0.85)');
+                  break;
+                default: // Red
+                  lineGradient = ctx.createLinearGradient(0, parentBottom, 0, childTopPos);
+                  lineGradient.addColorStop(0, 'rgba(231, 76, 60, 0.85)');
+                  lineGradient.addColorStop(1, 'rgba(192, 57, 43, 0.85)');
+              }
+              
+              ctx.strokeStyle = lineGradient;
+              
+              // Calculate control points for bezier curve
+              const hDist = Math.abs(childCenterX - parentCenterX);
+              const vDist = childTopPos - parentBottom;
+              const curveOffset = Math.min(40, Math.max(20, vDist * 0.25));
+              
+              // Draw the connection path with smooth bezier curves
+              ctx.beginPath();
+              ctx.moveTo(parentCenterX, parentBottom); // Start from parent bottom center
+              
+              if (hDist < 10) {
+                // Almost straight down - use single bezier curve
+                ctx.bezierCurveTo(
+                  parentCenterX, parentBottom + curveOffset,
+                  childCenterX, childTopPos - curveOffset,
+                  childCenterX, childTopPos
+                );
+              } else {
+                // More complex path with horizontal segment
+                ctx.bezierCurveTo(
+                  parentCenterX, parentBottom + curveOffset,
+                  parentCenterX, midY - curveOffset/2,
+                  parentCenterX, midY
+                );
+                ctx.lineTo(childCenterX, midY);
+                ctx.bezierCurveTo(
+                  childCenterX, midY + curveOffset/2,
+                  childCenterX, childTopPos - curveOffset,
+                  childCenterX, childTopPos
+                );
+              }
+              
+              ctx.stroke();
+              connectionsDrawn++;
+            }
+          }
+        });
+      }
+      
+      // Collect nodes by level
+      function collectNodesByLevel(nodes, level = 0) {
+        nodes.forEach(node => {
+          if (!levelNodes[level]) levelNodes[level] = [];
+          levelNodes[level].push(node);
+          if (node.children.length > 0) {
+            collectNodesByLevel(node.children, level + 1);
+          }
+        });
+      }
+      
+      collectNodesByLevel(roots);
+      
+      // Render levels
+      Object.keys(levelNodes).sort((a, b) => parseInt(a) - parseInt(b)).forEach(level => {
+        const $level = $('<div class="esg-stds-org-level"></div>');
+        
+        levelNodes[level].forEach((node, index) => {
+          const typeLabel = getCommitteeTypeLabel(node.committeeTypeId);
+          const $node = $(`
+            <div class="esg-stds-org-node esg-stds-level-${level}" data-id="${node.id}" id="node-${node.id}">
+              <div class="esg-stds-node-title">${node.name}</div>
+              <div class="esg-stds-node-type">${typeLabel}</div>
+            </div>
+          `);
+          
+          $node.on('click', function(e) {
+            e.stopPropagation(); // Prevent panning when clicking nodes
+            $('.esg-stds-org-node').removeClass('esg-stds-active');
+            $(this).addClass('esg-stds-active');
+            showCommitteeDetailsInTree(node.id);
+          });
+          
+          $level.append($node);
+          
+          // Store node position data for line drawing
+          nodePositions[node.id] = {
+            level: parseInt(level),
+            index: index,
+            parentId: node.parentCommitteeId,
+            element: $node
+          };
+        });
+        
+        $orgChart.append($level);
+      });
+      
+      // Draw connections after nodes are rendered
+      setTimeout(() => {
+        drawConnections();
+      }, 500);
+    }
+
+    function showCommitteeDetailsInTree(committeeId) {
+      // Try both string and number matching for ID
+      const committee = committees.find(c => c.id == committeeId || c.id === parseInt(committeeId) || c.id === String(committeeId));
+      if (!committee) {
+        $('.esg-stds-tree-details').html(`<div style="color:#888;">Committee not found. Searched for ID: ${committeeId} (type: ${typeof committeeId})<br>Available committees: ${committees.map(c => `${c.id}:${c.name} (type: ${typeof c.id})`).join(', ')}</div>`);
+        return;
+      }
+      
+      // Get committee type information
+      const committeeType = committeeTypes.find(ct => ct.id == committee.committeeTypeId);
+      
+      // Get all committees of the same type
+      const committeesOfSameType = committees.filter(c => c.committeeTypeId == committee.committeeTypeId);
+      
+      // Get all users across all committees of this type
+      const allUsersInType = data.users.filter(user => 
+        user.memberships.some(membership => 
+          committeesOfSameType.some(comm => comm.id == membership.committeeId)
+        )
+      );
+      
+      // Debug: Log committee and user information
+      console.log('Committee clicked:', committee);
+      console.log('Committee type:', committeeType);
+      console.log('Committees of same type:', committeesOfSameType);
+      console.log('All users in type:', allUsersInType);
+      console.log('All users:', data.users);
+      
+      // Group users by role across all committees of this type
+      const roleStatsForType = {};
+      const rightStatsForType = {};
+      const userDetailsByCommittee = {};
+      
+      const uniqueUserIds = new Set();
+      allUsersInType.forEach(user => uniqueUserIds.add(user.id));
+      
+      allUsersInType.forEach(user => {
+        user.memberships.forEach(membership => {
+          const membershipCommittee = committeesOfSameType.find(c => c.id == membership.committeeId);
+          if (membershipCommittee) {
+            const role = membership.role;
+            const right = getRoleRight(role);
+            
+            // Group by role for the committee type
+            if (!roleStatsForType[role]) {
+              roleStatsForType[role] = {
+                users: [],
+                right: right,
+                count: 0,
+                committees: new Set()
+              };
+            }
+            
+            // Avoid duplicate users in the same role
+            const existingUser = roleStatsForType[role].users.find(u => u.id === user.id && u.committeeId === membership.committeeId);
+            if (!existingUser) {
+              roleStatsForType[role].users.push({
+                ...user,
+                committeeId: membership.committeeId,
+                committeeName: membershipCommittee.name
+              });
+              roleStatsForType[role].count++;
+              roleStatsForType[role].committees.add(membershipCommittee.name);
+            }
+            
+            // Group by rights for the committee type
+            if (!rightStatsForType[right]) {
+              rightStatsForType[right] = {
+                roles: new Set(),
+                userCount: 0,
+                committees: new Set()
+              };
+            }
+            if (!existingUser) {
+              rightStatsForType[right].roles.add(role);
+              rightStatsForType[right].userCount++;
+              rightStatsForType[right].committees.add(membershipCommittee.name);
+            }
+            
+            // Group by committee for detailed view
+            if (!userDetailsByCommittee[membershipCommittee.id]) {
+              userDetailsByCommittee[membershipCommittee.id] = {
+                committee: membershipCommittee,
+                users: []
+              };
+            }
+            const existingInCommittee = userDetailsByCommittee[membershipCommittee.id].users.find(u => u.id === user.id);
+            if (!existingInCommittee) {
+              userDetailsByCommittee[membershipCommittee.id].users.push({
+                ...user,
+                role: role,
+                right: right
+              });
+            }
+          }
+        });
+      });
+      
+      let html = `<h3>${committee.name}</h3>`;
+      html += `<div class="esg-stds-compact-row"><span class="esg-stds-compact-label">Committee Type:</span> <span class="esg-stds-compact-value">${getCommitteeTypeLabel(committee.committeeTypeId)}</span></div>`;
+      html += `<div class="esg-stds-compact-row"><span class="esg-stds-compact-label">Project:</span> <span class="esg-stds-compact-value">${committee.projectName || '-'}</span></div>`;
+      if (committee.parentCommitteeId && committee.parentCommitteeId !== 0) {
+        html += `<div class="esg-stds-compact-row"><span class="esg-stds-compact-label">Parent:</span> <span class="esg-stds-compact-value">${getCommitteeName(committee.parentCommitteeId)}</span></div>`;
+      }
+      html += `<hr class='esg-stds-section-divider'>`;
+      
+      // Committee Type Statistics Summary
+      // Use available roles and rights from typeRoleMappings for this committee type
+      const typeRolesForOverview = apiData.typeRoleMappings.filter(mapping => mapping.committeeTypeId === committee.committeeTypeId);
+      const availableRolesCount = typeRolesForOverview.length;
+      const availableRightsSet = new Set(typeRolesForOverview.map(r => r.userRight));
+      html += `<div style=\"margin-top: 15px; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;\">`;
+      html += `<h4 style=\"margin: 0 0 10px 0; color: white;\">🏛️ ${committeeType ? committeeType.label : 'Committee Type'} Overview</h4>`;
+      html += `<div style=\"display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px;\">`;
+      html += `<div><b>Total Committees:</b><br>${committeesOfSameType.length}</div>`;
+      html += `<div><b>Total Users:</b><br>${uniqueUserIds.size}</div>`;
+      html += `<div><b>Total Roles:</b><br>${availableRolesCount}</div>`;
+      html += `<div><b>Rights Categories:</b><br>${availableRightsSet.size}</div>`;
+      html += `</div></div>`;
+      
+      // All committees of this type
+      html += `<div style="margin-top: 15px;">`;
+      html += `<h4 style="margin-bottom: 8px;">🏢 All ${committeeType ? committeeType.label : 'Committee Type'} Committees</h4>`;
+      html += `<div style="display: flex; flex-wrap: wrap; gap: 8px;">`;
+      committeesOfSameType.forEach(comm => {
+        const isSelected = comm.id == committee.id;
+        html += `<span style="padding: 4px 8px; background: ${isSelected ? '#007bff' : '#e9ecef'}; color: ${isSelected ? 'white' : '#333'}; border-radius: 4px; font-size: 0.85em; ${isSelected ? 'font-weight: 600;' : ''}">${comm.name}</span>`;
+      });
+      html += `</div></div>`;
+      
+      // User Rights breakdown for the committee type
+      if (Object.keys(rightStatsForType).length > 0) {
+        html += `<div style="margin-top: 15px;">`;
+        html += `<h4 style="margin-bottom: 8px;">🔐 User Rights Across All ${committeeType ? committeeType.label : 'Committee Type'} Committees</h4>`;
+        
+        Object.keys(rightStatsForType).forEach(right => {
+          const stats = rightStatsForType[right];
+          const rolesArray = Array.from(stats.roles);
+          const committeesArray = Array.from(stats.committees);
+          let rightColor = '#6c757d';
+          if (right.includes('Voting')) rightColor = '#28a745';
+          else if (right.includes('Non-voting')) rightColor = '#ffc107';
+          else if (right.includes('Administrative')) rightColor = '#007bff';
+          
+          html += `<div style="margin-bottom: 10px; padding: 10px; background: ${rightColor}15; border-left: 4px solid ${rightColor}; border-radius: 6px;">`;
+          html += `<div style="font-weight: 600; color: ${rightColor}; margin-bottom: 4px;">${right}</div>`;
+          html += `<div style="font-size: 0.9em; color: #666;">`;
+          html += `<div><b>${stats.userCount}</b> user${stats.userCount !== 1 ? 's' : ''} across <b>${rolesArray.length}</b> role${rolesArray.length !== 1 ? 's' : ''}</div>`;
+          html += `<div><b>Roles:</b> ${rolesArray.join(', ')}</div>`;
+          html += `<div><b>Committees:</b> ${committeesArray.join(', ')}</div>`;
+          html += `</div></div>`;
+        });
+        html += `</div>`;
+      }
+      
+      // All Available Roles from typeRoleMappings for this committee type
+      const typeRoles = apiData.typeRoleMappings.filter(mapping => mapping.committeeTypeId === committee.committeeTypeId);
+      
+      html += `<div style="margin-top: 15px;">`;
+      html += `<h4 style="margin-bottom: 8px;">🎯 All Available Roles for ${committeeType ? committeeType.label : 'Committee Type'}</h4>`;
+      
+      if (typeRoles.length > 0) {
+        // Group roles by user rights for better organization
+        const rolesByRight = {};
+        typeRoles.forEach(roleMapping => {
+          if (!rolesByRight[roleMapping.userRight]) {
+            rolesByRight[roleMapping.userRight] = [];
+          }
+          
+          // Find users assigned to this role across all committees of this type
+          const usersInRole = [];
+          data.users.forEach(user => {
+            user.memberships.forEach(membership => {
+              const membershipCommittee = committees.find(c => c.id == membership.committeeId);
+              if (membershipCommittee && membershipCommittee.committeeTypeId === committee.committeeTypeId && membership.role === roleMapping.roleName) {
+                usersInRole.push({
+                  user: user,
+                  committee: membershipCommittee
+                });
+              }
+            });
+          });
+          
+          rolesByRight[roleMapping.userRight].push({
+            ...roleMapping,
+            usersInRole: usersInRole
+          });
+        });
+        
+        // Display roles grouped by user rights
+        Object.keys(rolesByRight).forEach((userRight, groupIndex) => {
+          let rightColor = '#6c757d';
+          if (userRight.includes('Voting')) rightColor = '#28a745';
+          else if (userRight.includes('Non-voting') || userRight.includes('Non- voting')) rightColor = '#ffc107';
+          else if (userRight.includes('Administrative')) rightColor = '#007bff';
+          
+          const rolesInRight = rolesByRight[userRight];
+          const totalUsersInRight = rolesInRight.reduce((sum, role) => sum + role.usersInRole.length, 0);
+          const sectionId = `right-section-${groupIndex}`;
+          
+          html += `<div style="margin-bottom: 20px; border: 1px solid ${rightColor}; border-radius: 10px; overflow: hidden;">`;
+          
+          // User Right Header (Clickable)
+          html += `<div style="background: ${rightColor}; color: white; padding: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;" onclick="toggleRightSection('${sectionId}')" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">`;
+          html += `<div style="display: flex; justify-content: space-between; align-items: center;">`;
+          html += `<span style="font-size: 1.2em;">🔐 ${userRight}</span>`;
+          html += `<div style="display: flex; align-items: center; gap: 10px;">`;
+          html += `<span style="background: rgba(255,255,255,0.3); padding: 4px 12px; border-radius: 20px; font-size: 0.9em;">${totalUsersInRight} users</span>`;
+          html += `<span id="${sectionId}-icon" style="font-size: 1.2em; transition: transform 0.3s ease; transform: rotate(-90deg);">▼</span>`;
+          html += `</div>`;
+          html += `</div>`;
+          
+          // Update the roles count based on the correct categories
+          let roleCount = 0;
+          if (userRight.includes('Voting')) {
+            roleCount = rolesInRight.filter(role => ['Chair', 'Co-Chair', 'Deputy Chair', 'Voting Member'].includes(role.roleName)).length;
+          } else if (userRight.includes('Non-voting') || userRight.includes('Non- voting')) {
+            roleCount = rolesInRight.filter(role => ['Alternate Member', 'Observer'].includes(role.roleName)).length;
+          } else if (userRight.includes('Administrative')) {
+            roleCount = rolesInRight.filter(role => ['SDO Head', 'SC Head', 'Secretariat'].includes(role.roleName)).length;
+          }
+          
+          html += `<div style="font-size: 0.85em; font-weight: normal; opacity: 0.9; margin-top: 5px;">${roleCount} roles available</div>`;
+          html += `</div>`;
+          
+          // Roles in this user right category (Collapsible) - Start collapsed
+          html += `<div id="${sectionId}" class="esg-stds-collapsible-content esg-stds-collapsed" style="background: #f8f9fa; padding: 15px; max-height: 400px; overflow-y: auto; transition: max-height 0.3s ease, padding 0.3s ease;">`;
+          
+          rolesInRight.forEach((roleMapping, roleIndex) => {
+            html += `<div style="margin-bottom: ${roleIndex < rolesInRight.length - 1 ? '15px' : '0'}; background: white; border-radius: 8px; border-left: 4px solid ${rightColor}; overflow: hidden;">`;
+            
+            // Role Header
+            html += `<div style="padding: 12px 15px; background: ${rightColor}10; border-bottom: 1px solid ${rightColor}20;">`;
+            html += `<div style="display: flex; justify-content: space-between; align-items: center;">`;
+            html += `<span style="font-weight: 600; color: ${rightColor}; font-size: 1.1em;">👤 ${roleMapping.roleName}</span>`;
+            html += `<span style="background: ${rightColor}20; color: ${rightColor}; padding: 3px 10px; border-radius: 15px; font-size: 0.85em; font-weight: 500;">${roleMapping.usersInRole.length} assigned</span>`;
+            html += `</div>`;
+                         html += `<div style="font-size: 0.8em; color: #666; margin-top: 4px;">Representation: ${roleMapping.representation}</div>`;
+            html += `</div>`;
+            
+                         // Users assigned to this role
+             if (roleMapping.usersInRole.length > 0) {
+               html += `<div style="padding: 15px; max-height: 300px; overflow-y: auto;">`;
+              
+              // Group users by committee
+              const usersByCommittee = {};
+              roleMapping.usersInRole.forEach(userInfo => {
+                if (!usersByCommittee[userInfo.committee.name]) {
+                  usersByCommittee[userInfo.committee.name] = [];
+                }
+                usersByCommittee[userInfo.committee.name].push(userInfo.user);
+              });
+              
+              Object.keys(usersByCommittee).forEach((committeeName, committeeIndex) => {
+                html += `<div style="margin-bottom: ${committeeIndex < Object.keys(usersByCommittee).length - 1 ? '12px' : '0'};">`;
+                html += `<div style="font-weight: 600; color: ${rightColor}; margin-bottom: 6px; font-size: 0.9em;">📋 ${committeeName}</div>`;
+                
+                usersByCommittee[committeeName].forEach((user, userIndex) => {
+                  html += `<div style="margin-bottom: ${userIndex < usersByCommittee[committeeName].length - 1 ? '6px' : '0'}; padding: 8px 12px; background: ${rightColor}05; border-radius: 5px; margin-left: 15px;">`;
+                  html += `<div style="font-weight: 500; color: #333;">${user.name}</div>`;
+                  
+                                     // Show other memberships
+                   const currentCommitteeId = usersByCommittee[committeeName].length > 0 ? 
+                     roleMapping.usersInRole.find(ui => ui.user.id === user.id && ui.committee.name === committeeName)?.committee.id : null;
+                   const otherMemberships = user.memberships.filter(m => m.committeeId != currentCommitteeId);
+                  if (otherMemberships.length > 0) {
+                    html += `<div style="font-size: 0.75em; color: #999; margin-top: 3px;">`;
+                    html += `Also: ${otherMemberships.map(m => `${getCommitteeName(m.committeeId)} (${m.role})`).join(', ')}`;
+                    html += `</div>`;
+                  }
+                  html += `</div>`;
+                });
+                html += `</div>`;
+              });
+              html += `</div>`;
+            } else {
+              html += `<div style="padding: 15px; color: #999; font-style: italic; text-align: center;">No users currently assigned to this role</div>`;
+            }
+            
+            html += `</div>`;
+          });
+          
+          html += `</div>`;
+          html += `</div>`;
+        });
+        
+      } else {
+        html += `<div style="padding: 20px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; color: #856404;">`;
+        html += `<h5 style="margin: 0 0 10px 0;">⚠️ No Role Mappings Found</h5>`;
+        html += `<div>No role mappings are defined for ${committeeType ? committeeType.label : 'this committee type'}.</div>`;
+        html += `</div>`;
+      }
+      
+      html += `</div>`;
+      
+      $('.esg-stds-tree-details').html(html);
+    }
+
+    // Toggle function for collapsible right sections
+    function toggleRightSection(sectionId) {
+      const content = document.getElementById(sectionId);
+      const icon = document.getElementById(sectionId + '-icon');
+      
+      if (content && icon) {
+        if (content.classList.contains('esg-stds-collapsed')) {
+          // Expand
+          content.classList.remove('esg-stds-collapsed');
+          icon.style.transform = 'rotate(0deg)';
+        } else {
+          // Collapse
+          content.classList.add('esg-stds-collapsed');
+          icon.style.transform = 'rotate(-90deg)';
+        }
+      }
+    }
+
+    // Make the function globally accessible
+    window.toggleRightSection = toggleRightSection;
+
+    // --- Details and Chart Panels (unchanged) ---
+    function showUserDetails(userId) {
+      const user = data.users.find(u => u.id == userId);
+      if (!user) return;
+
+      // Group memberships by committee type for better organization
+      const membershipsByType = {};
+      user.memberships.forEach(m => {
+        const committee = committees.find(c => c.id == m.committeeId);
+        if (committee) {
+          const typeLabel = getCommitteeTypeLabel(committee.committeeTypeId);
+          if (!membershipsByType[typeLabel]) {
+            membershipsByType[typeLabel] = [];
+          }
+          membershipsByType[typeLabel].push({
+            ...m,
+            committeeName: committee.name,
+            committeeType: typeLabel
+          });
+        }
+      });
+
+      let html = `
+        <div class="esg-stds-user-profile">
+          <div class="esg-stds-user-header">
+            <div class="esg-stds-user-avatar">${user.name.charAt(0).toUpperCase()}</div>
+            <div class="esg-stds-user-info">
+              <h3>${user.name}</h3>
+              <div class="esg-stds-user-stats">
+                <span class="esg-stds-stat-badge">
+                  <i class="fas fa-users"></i> ${user.memberships.length} Committee${user.memberships.length !== 1 ? 's' : ''}
+                </span>
+                <span class="esg-stds-stat-badge">
+                  <i class="fas fa-layer-group"></i> ${Object.keys(membershipsByType).length} Committee Type${Object.keys(membershipsByType).length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="esg-stds-user-content">
+            <div class="esg-stds-user-section">
+              <h4><i class="fas fa-sitemap"></i> Committee Memberships</h4>
+              <div class="esg-stds-committee-list">`;
+
+      // Sort committee types by number of memberships
+      const sortedTypes = Object.keys(membershipsByType).sort((a, b) => 
+        membershipsByType[b].length - membershipsByType[a].length
+      );
+
+      sortedTypes.forEach(typeLabel => {
+        const typeMemberships = membershipsByType[typeLabel];
+        html += `
+          <div class="esg-stds-committee-group">
+            <div class="esg-stds-committee-type-header">
+              <span class="esg-stds-committee-type">${typeLabel}</span>
+              <span class="esg-stds-membership-count">${typeMemberships.length} Role${typeMemberships.length !== 1 ? 's' : ''}</span>
+            </div>
+            <div class="esg-stds-committee-memberships">`;
+
+        typeMemberships.forEach(membership => {
+          const right = getRoleRight(membership.role);
+          let rightColor = '#6c757d';
+          if (right.includes('Voting')) rightColor = '#28a745';
+          else if (right.includes('Non-voting')) rightColor = '#ffc107';
+          else if (right.includes('Administrative')) rightColor = '#007bff';
+
+          html += `
+            <div class="esg-stds-membership-card">
+              <div class="esg-stds-membership-header">
+                <span class="esg-stds-role-badge" style="background: ${rightColor}15; color: ${rightColor};">
+                  ${membership.role}
+                </span>
+                <span class="esg-stds-right-badge" style="background: ${rightColor}15; color: ${rightColor};">
+                  ${right}
+                </span>
+              </div>
+              <div class="esg-stds-committee-name">${membership.committeeName}</div>
+            </div>`;
+        });
+
+        html += `
+            </div>
+          </div>`;
+      });
+
+      html += `
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      $('#details').html(html);
+
+      // Add CSS for the new UI
+      const style = `
+        <style>
+          .esg-stds-user-profile {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+          }
+
+          .esg-stds-user-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+          }
+
+          .esg-stds-user-avatar {
+            width: 64px;
+            height: 64px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 600;
+          }
+
+          .esg-stds-user-info h3 {
+            margin: 0 0 8px 0;
+            font-size: 24px;
+          }
+
+          .esg-stds-user-stats {
+            display: flex;
+            gap: 12px;
+          }
+
+          .esg-stds-stat-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+          }
+
+          .esg-stds-user-content {
+            padding: 24px;
+          }
+
+          .esg-stds-user-section {
+            margin-bottom: 24px;
+          }
+
+          .esg-stds-user-section h4 {
+            margin: 0 0 16px 0;
+            color: #2d3748;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+
+          .esg-stds-committee-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+          }
+
+          .esg-stds-committee-group {
+            background: #f8fafc;
+            border-radius: 8px;
+            overflow: hidden;
+          }
+
+          .esg-stds-committee-type-header {
+            background: #edf2f7;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+
+          .esg-stds-committee-type {
+            font-weight: 600;
+            color: #2d3748;
+          }
+
+          .esg-stds-membership-count {
+            font-size: 14px;
+            color: #718096;
+          }
+
+          .esg-stds-committee-memberships {
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 12px;
+          }
+
+          .esg-stds-membership-card {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+          }
+
+          .esg-stds-membership-header {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+          }
+
+          .esg-stds-role-badge, .esg-stds-right-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+          }
+
+          .esg-stds-committee-name {
+            color: #4a5568;
+            font-size: 14px;
+          }
+        </style>`;
+
+      // Add Font Awesome for icons
+      const fontAwesome = `
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+      `;
+
+      // Add styles and Font Awesome to head if not already present
+      if (!document.querySelector('#esg-stds-user-styles')) {
+        $('head').append(style);
+        $('head').append(fontAwesome);
+      }
+
+      // Pie chart: Role distribution for this user
+      const roleCounts = {};
+      user.memberships.forEach(m => {
+        roleCounts[m.role] = (roleCounts[m.role] || 0) + 1;
+      });
+      const chartData = Object.keys(roleCounts).map(role => ({
+        name: role,
+        y: roleCounts[role]
+      }));
+
+      Highcharts.chart($('.esg-stds-chart-container')[0], {
+        chart: { 
+          type: 'pie',
+          backgroundColor: 'transparent'
+        },
+        title: { 
+          text: `Role Distribution`,
+          style: {
+            fontSize: '16px',
+            fontWeight: '600',
+            color: '#2d3748'
+          }
+        },
+        plotOptions: {
+          pie: {
+            allowPointSelect: true,
+            cursor: 'pointer',
+            dataLabels: {
+              enabled: true,
+              format: '<b>{point.name}</b>: {point.percentage:.1f}%',
+              style: {
+                fontSize: '12px'
+              }
+            }
+          }
+        },
+        series: [{
+          name: 'Roles',
+          colorByPoint: true,
+          data: chartData
+        }],
+        credits: { enabled: false }
+      });
+    }
+
+    function showCommitteeDetails(committeeId) {
+      const committee = committees.find(c => c.id == committeeId);
+      if (!committee) return;
+      let html = `<h3>${committee.name}</h3>`;
+      html += `<div>Type: <b>${getCommitteeTypeLabel(committee.committeeTypeId)}</b></div>`;
+      
+      const roleMap = {};
+      data.users.forEach(user => {
+        user.memberships.forEach(m => {
+          if (m.committeeId == committeeId) {
+            if (!roleMap[m.role]) roleMap[m.role] = [];
+            roleMap[m.role].push(user.name);
+          }
+        });
+      });
+      
+      html += `<ul>`;
+      Object.keys(roleMap).forEach(role => {
+        html += `<li>
+          <span class="esg-stds-role-badge">${role}</span>
+          <span class="esg-stds-right-badge">${getRoleRight(role)}</span>
+          <br>
+          <b>Users:</b> ${roleMap[role].join(', ')}
+        </li>`;
+      });
+      html += `</ul>`;
+      $('#details').html(html);
+
+      const chartData = Object.keys(roleMap).map(role => ({
+        name: role,
+        y: roleMap[role].length
+      }));
+      Highcharts.chart($('.esg-stds-chart-container')[0], {
+        chart: { type: 'column' },
+        title: { text: `User Count per Role in ${committee.name}` },
+        xAxis: { type: 'category', title: { text: 'Role' } },
+        yAxis: { title: { text: 'User Count' }, allowDecimals: false },
+        series: [{
+          name: 'Users',
+          data: chartData
+        }],
+        credits: { enabled: false }
+      });
+    }
+
+    // Tab switching
+    $('#userTab').on('click', function() {
+      $('.esg-stds-tab').removeClass('esg-stds-active');
+      $(this).addClass('esg-stds-active');
+      renderUserList();
+    });
+    
+    $('#committeeTab').on('click', function() {
+      $('.esg-stds-tab').removeClass('esg-stds-active');
+      $(this).addClass('esg-stds-active');
+      renderCommitteeList();
+    });
+    
+    $('#committeeTreeTab').on('click', function() {
+      $('.esg-stds-tab').removeClass('esg-stds-active');
+      $(this).addClass('esg-stds-active');
+      renderOrganizationChart(committees);
+    });
+
+    // Initial render
+    $(document).ready(function() {
+      renderUserList();
+    });
+  </script>
+</body>
+</html> 
