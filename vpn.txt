@@ -1,0 +1,23 @@
+Hi,
+
+DEV VPN account information:
+
+Username: akahm-vpn
+2FA Password: part1part2
+-	Password consist of 2 parts:
+?	Part1: cpbN5Q7J
+?	Part2: Google Pin (Google Authenticator APP: Scan your QA attached along with this email.)
+
+** Note **
+-	Users are encouraged to change Password (Part 1) after first successful login.
+-	Password (Part 1) expires every 90 days. 
+o	Access to https://jenkins.jtcdev.gov.sg using JTC DEV AD credentials.
+o	Select “vpn-account-chgpassword”
+o	Select “Build with Parameters”
+o	Enter your new password
+o	Click on “Build”
+-	Ensure Google Authenticator APP time is sync 
+o	Android: Within Google Authenticator APP, go to option and execute time sync.
+o	Apple: Ensure phone clock is in sync.
+
+Thank you~
