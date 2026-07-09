@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="98" viewBox="0 0 140 114" fill="none">
+  <rect x="2" y="2" width="136" height="96" rx="6" fill="#F4FBFD" stroke="#02B3E4" stroke-width="2"/>
+  <rect x="7" y="7" width="126" height="86" rx="3" fill="none" stroke="#9FE3F5" stroke-width="1"/>
+
+  <path d="M7 20 V7 H20" stroke="#02B3E4" stroke-width="1.4" fill="none"/>
+  <path d="M133 20 V7 H120" stroke="#02B3E4" stroke-width="1.4" fill="none"/>
+  <path d="M7 80 V93 H20" stroke="#02B3E4" stroke-width="1.4" fill="none"/>
+  <path d="M133 80 V93 H120" stroke="#02B3E4" stroke-width="1.4" fill="none"/>
+
+  <g transform="translate(70,25)">
+    <polygon points="0,-11 9.5,-5.5 9.5,5.5 0,11 -9.5,5.5 -9.5,-5.5" fill="#02B3E4"/>
+    <text x="0" y="4.5" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="12" font-weight="800" fill="#FFFFFF">U</text>
+  </g>
+  <text x="70" y="45" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="8" font-weight="700" letter-spacing="2" fill="#02B3E4">UDACITY</text>
+
+  <text x="70" y="60" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="9.5" fill="#23485A">Akash Deep Mishra</text>
+  <line x1="38" y1="64" x2="102" y2="64" stroke="#BDE7F3" stroke-width="1"/>
+  <text x="70" y="72" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="5.4" font-weight="600" fill="#4E6B7C" letter-spacing="1">FULL STACK WEB DEVELOPMENT</text>
+  <text x="70" y="79" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="5" fill="#84A0B0" letter-spacing="1.6">NANODEGREE PROGRAM</text>
+
+  <g transform="translate(70,98)">
+    <polygon points="-7,3 -10,15 -3,10.5" fill="#0290B8"/>
+    <polygon points="7,3 10,15 3,10.5" fill="#0290B8"/>
+    <circle r="8" fill="#02B3E4"/>
+    <circle r="8" fill="none" stroke="#FFFFFF" stroke-width="1"/>
+    <path d="M-3.4,0 L-1,2.6 L3.6,-3" stroke="#FFFFFF" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
