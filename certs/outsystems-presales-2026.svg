@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="62" height="80" viewBox="0 0 70 90" fill="none">
+  <defs>
+    <clipPath id="shieldClipPresales">
+      <path d="M0,8 Q0,0 8,0 H62 Q70,0 70,8 V88 L35,72 L0,88 Z"/>
+    </clipPath>
+    <linearGradient id="redGradPresales" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F0402F"/>
+      <stop offset="1" stop-color="#921A1A"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#shieldClipPresales)">
+    <rect x="0" y="0" width="70" height="90" fill="url(#redGradPresales)"/>
+    <polygon points="0,0 70,0 70,25 0,34" fill="#0B1C2C"/>
+    <polygon points="0,34 70,25 70,30.5 0,39.5" fill="#FFFFFF"/>
+  </g>
+  <g transform="translate(9,9)">
+    <circle cx="4" cy="4" r="4" fill="none" stroke="#FFFFFF" stroke-width="1.4"/>
+    <circle cx="4" cy="4" r="1.4" fill="#FFFFFF"/>
+    <text x="10.5" y="6.6" font-family="Poppins, Arial, sans-serif" font-size="6.6" font-weight="600" fill="#FFFFFF">outsystems</text>
+  </g>
+  <text x="35" y="60" text-anchor="middle" font-family="Poppins, Arial, sans-serif" font-size="11.5" font-weight="800" fill="#FFFFFF">Pre-Sales</text>
+</svg>
